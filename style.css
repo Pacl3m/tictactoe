@@ -8,6 +8,7 @@ body {
     align-items: center;
     flex-direction: column;
     height: 100vh;
+    margin: 0;
   }
 
 
@@ -38,6 +39,13 @@ td {
     text-align: center;
     font-size: 48px;
 }
+
+
+td:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
   
 td:not(:last-child) {
     border-right: 1px solid white;
@@ -65,4 +73,10 @@ table tr:last-child td {
 }
 table tr td:last-child {
     border-right: 0;
+}
+
+
+.winning-line line {
+    stroke: white;
+    stroke-width: 5px;
 }
