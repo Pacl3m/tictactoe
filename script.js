@@ -31,18 +31,18 @@ function render() {
             let symbol = '';
 
             if (fields[index] === 'circle') {
-            symbol = generateCircleSVG();
+                symbol = generateCircleSVG();
             } else if (fields[index] === 'cross') {
                 symbol = generateCrossSVG();
             };
 
             cell.innerHTML = symbol;
-            cell.onclick = (function(index) { // gibt dem onclich eine Funktion und diese gibt dem Wert des in der Schleife momentanen index mit 
-                return function() {
+            cell.onclick = (function (index) { // gibt dem onclich eine Funktion und diese gibt dem Wert des in der Schleife momentanen index mit 
+                return function () {
                     handleClick(this, index);
                 };
-            })(index); 
-             
+            })(index);
+
             row.appendChild(cell);
             index++;
         }
@@ -72,7 +72,7 @@ function generateCircleSVG() {
     const color = "#00B0EF";
     const diameter = 70; // Größe des Kreises
     const strokeWidth = 5; // Dicke des Kreisrands
-  
+
     const svgCode = `
       <svg width="${diameter}" height="${diameter}" viewBox="0 0 ${diameter} ${diameter}" style="display: block; margin: auto;">
         <circle cx="${diameter / 2}" cy="${diameter / 2}" r="${(diameter - strokeWidth) / 2}" fill="none" stroke="${color}" stroke-width="${strokeWidth}">
@@ -80,7 +80,7 @@ function generateCircleSVG() {
         </circle>
       </svg>
     `;
-  
+
     return svgCode;
 }
 
@@ -91,7 +91,7 @@ function generateCrossSVG() {
     const strokeWidth = 5; // Dicke des Kreuzrands
     const animationDuration = "250ms"; // Dauer der Animation
 
-  const svgCode = `
+    const svgCode = `
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display: block; margin: auto;">
     <line x1="${strokeWidth}" y1="${strokeWidth}" x2="${size - strokeWidth}" y2="${size - strokeWidth}" stroke="${color}" stroke-width="${strokeWidth}">
       <animate attributeName="x2" values="0; ${size}" dur="${animationDuration}"/>
@@ -103,12 +103,15 @@ function generateCrossSVG() {
     </line>
   </svg>
 `;
-  
+
     return svgCode;
-  }
+}
 
 
-  function checkGameEnd() {
+let winningCombination = '';
+
+
+function checkGameEnd() {
     // Array mit den Gewinnkombinationen
     const winCombinations = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontale Reihen
@@ -119,9 +122,8 @@ function generateCrossSVG() {
     // Überprüfen, ob eine Gewinnkombination erreicht wurde
     for (const combination of winCombinations) {
         const [a, b, c] = combination;
-        if (
-            fields[a] && fields[a] === fields[b] && fields[a] === fields[c]
-        ) {
+        if (fields[a] && fields[a] === fields[b] && fields[a] === fields[c]) {
+            winningCombination = combination;
             drawWinningLine(combination); // Zeichne die Gewinnlinie
             return; // Spiel abbrechen
         }
@@ -136,14 +138,20 @@ function generateCrossSVG() {
 
 
 function drawWinningLine(combination) {
+    const overlayElement = document.getElementById('winning-overlay');
+
+    if (overlayElement) { // Fängt den Fehler ab, wenn noch kein Element mit der ID 'winning-overlay' existiert
+        overlayElement.remove(); // Entferne das vorhandene Overlay-Element
+    }
+
     const [a, b, c] = combination;
-    const cells = document.querySelectorAll('td'); // Sucht die 
+    const cells = document.querySelectorAll('td'); // Sucht alle <td> Elemente und setzt sie in ein Array
     const cellA = cells[a];
     const cellC = cells[c];
-  
+
     const rectA = cellA.getBoundingClientRect();
     const rectC = cellC.getBoundingClientRect();
-  
+
     const svgNamespace = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNamespace, 'svg');
     svg.setAttribute('width', '100%');
@@ -156,9 +164,9 @@ function drawWinningLine(combination) {
     line.setAttribute('y2', rectC.top + rectC.height / 2);
     line.setAttribute('stroke', 'white');
     line.setAttribute('stroke-width', '5px');
-  
+
     svg.appendChild(line);
-  
+
     const winningLine = document.createElement('div');
     winningLine.className = 'winning-line';
     winningLine.style.position = 'absolute';
@@ -166,21 +174,54 @@ function drawWinningLine(combination) {
     winningLine.style.height = '100%';
     winningLine.style.pointerEvents = 'none'; // Um Klicks auf die Gewinnlinie zu deaktivieren
     winningLine.appendChild(svg);
-  
+
     const overlay = document.createElement('div');
+    overlay.id = 'winning-overlay';
     overlay.style.position = 'absolute';
     overlay.style.width = '100%';
-    overlay.style.height = '100%';
+    overlay.style.height = '99vh';
     overlay.style.pointerEvents = 'none'; // Um Klicks auf die Gewinnlinie zu deaktivieren
     overlay.appendChild(winningLine);
-  
+
     document.body.appendChild(overlay);
 
-    // Entfernen Sie das Klick-Event für alle Zellen, um das Spiel zu beenden
+    // Entfernt das Klick-Event für alle Zellen, um das Spiel zu beenden
     const allCells = document.querySelectorAll('td');
+    const restart = document.getElementById('restartButton');
+
     allCells.forEach((cell) => { // Diese Methode durchläuft jedes Element in der NodeList allCells und führt eine angegebene Funktion für jedes Element aus.
-      cell.onclick = null;
-      cell.setAttribute('background-color', null);
-      cell.setAttribute('cursor', null);
+        cell.onclick = null;
+        cell.setAttribute('background-color', null);
+        cell.setAttribute('cursor', null);
     });
-  }
+}
+
+
+function handleScreenResize() {
+    // Hier der auszuführende Code
+    if (winningCombination != '') {
+    drawWinningLine(winningCombination);
+    }
+}
+
+
+function restartGame() {
+    fields = [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+    ];
+    currentPlayer = 'circle';
+    winningCombination = '';
+    document.getElementById('winning-overlay').remove();
+    render();
+}
+
+
+window.addEventListener('resize', handleScreenResize);
